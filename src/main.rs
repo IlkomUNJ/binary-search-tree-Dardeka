@@ -1,6 +1,8 @@
 mod structure;
 mod tool;
 
+use std::cell::RefCell;
+
 use crate::structure::bst::BstNode;
 use crate::structure::tree::Node;
 use crate::structure::tree::NodeLink;
@@ -11,7 +13,43 @@ use crate::tool::generate_dotfile_bst;
 fn main() {
     //turn on to test the old code
     // test_binary_tree();
-    test_binary_search_tree();
+    // test_binary_search_tree();
+    binary_search_tree_validation_test();
+}
+
+fn binary_search_tree_validation_test(){
+    let rootlink = BstNode::new_bst_nodelink(15);
+    // rootlink.borrow_mut().tree_insert(&rootlink, 6);
+    rootlink.borrow_mut().tree_insert(&rootlink, 18);
+
+    // add right subtree
+    rootlink.borrow_mut().tree_insert(&rootlink,17);
+    rootlink.borrow_mut().tree_insert(&rootlink,20);
+
+    // add left subtree
+    rootlink.borrow_mut().tree_insert(&rootlink,3);
+    rootlink.borrow_mut().tree_insert(&rootlink,7);
+
+    // add 2nd level of left subtree
+    rootlink.borrow_mut().tree_insert(&rootlink,2);
+    rootlink.borrow_mut().tree_insert(&rootlink,4);
+    rootlink.borrow_mut().tree_insert(&rootlink,13);
+
+    // add 3rd level of left subtree
+    rootlink.borrow_mut().tree_insert(&rootlink,9);
+    println!("Before: \n{:#?}", rootlink);
+
+    // rootlink.borrow_mut().tree_delete(&18);
+
+    // println!("After: \n{:#?}", rootlink);
+
+    // let max_node = rootlink.borrow().maximum();
+    // println!("maximum result {:?}", max_node.borrow().key);
+
+    // //root node get test
+    // let root_node = BstNode::get_root(&max_node);
+    // println!("root node {:?}", root_node.borrow().key);
+    
 }
 
 fn test_binary_search_tree(){

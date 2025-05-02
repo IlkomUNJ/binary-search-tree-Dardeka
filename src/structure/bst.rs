@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::clone;
 use std::rc::{Rc, Weak};
 
 pub type BstNodeLink = Rc<RefCell<BstNode>>;
@@ -62,6 +63,25 @@ impl BstNode {
         self.right = Some(new_node);
     }
 
+    // insert function
+    pub fn tree_insert(&mut self, current_node_link: &BstNodeLink, value: i32){
+        let key = self.key.unwrap();
+        if value < key{
+            if self.left.is_some(){
+                let new_left = self.left.clone().unwrap();
+                return new_left.borrow_mut().tree_insert(&new_left,value);
+            }else{
+                self.add_left_child(current_node_link, value);
+            }
+        }else{
+            if self.right.is_some(){
+                let new_right = self.right.clone().unwrap();
+                return new_right.borrow_mut().tree_insert(&new_right, value);
+            }else{
+                self.add_right_child(current_node_link, value);
+            }
+        }
+    }
     //search the current tree which node fit the value
     pub fn tree_search(&self, value: &i32) -> Option<BstNodeLink> {
         if let Some(key) = self.key {
