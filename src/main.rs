@@ -19,12 +19,15 @@ fn main() {
 
 fn binary_search_tree_validation_test(){
     let rootlink = BstNode::new_bst_nodelink(15);
-    // rootlink.borrow_mut().tree_insert(&rootlink, 6);
+    rootlink.borrow_mut().tree_insert(&rootlink, 6);
     rootlink.borrow_mut().tree_insert(&rootlink, 18);
 
     // add right subtree
     rootlink.borrow_mut().tree_insert(&rootlink,17);
     rootlink.borrow_mut().tree_insert(&rootlink,20);
+
+    // add 2nd level of right subtree
+    rootlink.borrow_mut().tree_insert(&rootlink,22);
 
     // add left subtree
     rootlink.borrow_mut().tree_insert(&rootlink,3);
@@ -37,19 +40,28 @@ fn binary_search_tree_validation_test(){
 
     // add 3rd level of left subtree
     rootlink.borrow_mut().tree_insert(&rootlink,9);
+    
     println!("Before: \n{:#?}", rootlink);
 
-    // rootlink.borrow_mut().tree_delete(&18);
-
-    // println!("After: \n{:#?}", rootlink);
-
-    // let max_node = rootlink.borrow().maximum();
-    // println!("maximum result {:?}", max_node.borrow().key);
-
-    // //root node get test
-    // let root_node = BstNode::get_root(&max_node);
-    // println!("root node {:?}", root_node.borrow().key);
+    // Trying to delete a child which doesn't have any child
+    rootlink.borrow_mut().tree_delete(2);
+    println!("\nAfter 1st deletion : \n{:#?}", rootlink);
     
+    // Trying to delete a child which only have right child
+    rootlink.borrow_mut().tree_delete(20);
+    println!("\nAfter 2nd deletion : \n{:#?}", rootlink);
+    
+    // Trying to delete a child which only have left child
+    rootlink.borrow_mut().tree_delete(13);
+    println!("\nAfter 3rd deletion : \n{:#?}", rootlink);
+
+    // Trying to delete a child which have two child
+    rootlink.borrow_mut().tree_delete(3);
+    println!("\nAfter 4th deletion : \n{:#?}", rootlink);
+    
+    // Trying to delete the root
+    rootlink.borrow_mut().tree_delete(15);
+    println!("\nAfter 5th deletion : \n{:#?}", rootlink);
 }
 
 fn test_binary_search_tree(){
