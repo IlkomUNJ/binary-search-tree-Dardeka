@@ -41,23 +41,23 @@ fn binary_search_tree_validation_test(){
     // add 3rd level of left subtree
     rootlink.borrow_mut().tree_insert(&rootlink,9);
     
-    println!("Before: \n{:#?}", rootlink);
+    // println!("Before: \n{:#?}", rootlink);
 
     // Trying to delete a child which doesn't have any child
     rootlink.borrow_mut().tree_delete(2);
-    println!("\nAfter 1st deletion : \n{:#?}", rootlink);
+    // println!("\nAfter 1st deletion : \n{:#?}", rootlink);
     
     // Trying to delete a child which only have right child
     rootlink.borrow_mut().tree_delete(20);
-    println!("\nAfter 2nd deletion : \n{:#?}", rootlink);
+    // println!("\nAfter 2nd deletion : \n{:#?}", rootlink);
     
     // Trying to delete a child which only have left child
     rootlink.borrow_mut().tree_delete(13);
-    println!("\nAfter 3rd deletion : \n{:#?}", rootlink);
+    // println!("\nAfter 3rd deletion : \n{:#?}", rootlink);
 
     // Trying to delete a child which have two child
     rootlink.borrow_mut().tree_delete(3);
-    println!("\nAfter 4th deletion : \n{:#?}", rootlink);
+    // println!("\nAfter 4th deletion : \n{:#?}", rootlink);
     
     // Trying to delete the root
     rootlink.borrow_mut().tree_delete(15);
