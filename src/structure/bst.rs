@@ -1,4 +1,3 @@
-use std::arch::x86_64;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -63,7 +62,7 @@ impl BstNode {
         self.right = Some(new_node);
     }
 
-    // insert function
+    // tree_insert function
     pub fn tree_insert(&mut self, current_node_link: &BstNodeLink, value: i32){
         let key = self.key.unwrap();
         if value < key{
@@ -83,9 +82,8 @@ impl BstNode {
         }
     }
 
+    // transplant function
     fn transplant(&mut self, old_node: Option<BstNodeLink> ,new_node: Option<BstNodeLink>){
-        println!("You are entering transplant zone!");
-        println!("You are transplanting {:?} with {:?}", old_node.clone().unwrap().borrow().key, new_node.clone());
         if self.left.is_some() && self.left.clone().unwrap().borrow().key.unwrap() == old_node.clone().unwrap().borrow().key.unwrap(){
             if new_node.is_none(){
                 self.left = new_node.clone();
@@ -107,26 +105,22 @@ impl BstNode {
         }
     }
 
-    pub fn tree_delete(&mut self, value: i32){
-        let target = self.tree_search(&value);
+    // tree_delete function
+    pub fn tree_delete(&mut self, target: Option<BstNodeLink>, value: i32){
         if let Some(node) = target{
-            // 1st scenario : the target node doesn't have either left child or right child
-            if node.borrow().left.is_none() && node.borrow().right.is_none(){
-                // condition if the node has parent
+            // 1st scenario : if the node only have right child
+            if node.borrow().right.is_some() && node.borrow().left.is_none() {
                 if node.clone().borrow().parent.is_some(){
+                    let target_right = node.borrow().right.clone();
                     let node_parent = node.borrow().parent.clone();
                     let strong_parent = BstNode::upgrade_weak_to_strong(node_parent).unwrap();
                     let parent_left = strong_parent.borrow().left.clone();
                     let parent_right = strong_parent.borrow().right.clone();
-                    if value < strong_parent.borrow().key.unwrap(){
-                        strong_parent.borrow_mut().transplant(parent_left, None);
+                    if target_right.clone().unwrap().borrow().key.unwrap() < strong_parent.clone().borrow().key.unwrap() {
+                        strong_parent.borrow_mut().transplant(parent_left, target_right);
                     }else{
-                        strong_parent.borrow_mut().transplant(parent_right, None);
+                        strong_parent.borrow_mut().transplant(parent_right, target_right);
                     }
-                }
-                // if the node doesn't have parent
-                else{
-                    self.key = None;
                 }
             }
             // 2nd scenario : if the node only have left child
@@ -144,40 +138,55 @@ impl BstNode {
                     }
                 }
             }
-            // 3rd scenario : if the node only have right child
-            else if node.borrow().right.is_some() && node.borrow().left.is_none() {
-                if node.clone().borrow().parent.is_some(){
-                    let target_right = node.borrow().right.clone();
-                    let node_parent = node.borrow().parent.clone();
-                    let strong_parent = BstNode::upgrade_weak_to_strong(node_parent).unwrap();
-                    let parent_left = strong_parent.borrow().left.clone();
-                    let parent_right = strong_parent.borrow().right.clone();
-                    if target_right.clone().unwrap().borrow().key.unwrap() < strong_parent.clone().borrow().key.unwrap() {
-                        strong_parent.borrow_mut().transplant(parent_left, target_right);
-                    }else{
-                        strong_parent.borrow_mut().transplant(parent_right, target_right);
-                    }
-                }
-            }
-            // 4rd scenario : if the node have two child
+            // 3rd scenario : if the node have two child
             else if node.borrow().left.is_some() && node.borrow().right.is_some(){
                 if node.borrow().parent.is_some(){
+                    // goes here if the target node have parent
                     let node_parent = node.borrow().parent.clone();
                     let strong_parent = BstNode::upgrade_weak_to_strong(node_parent).unwrap();
-                    // find the minimum right subtree of target node
-                    let y = node.borrow().right.clone().unwrap().borrow().minimum();
-                    let y_parent = BstNode::upgrade_weak_to_strong(y.borrow().parent.clone()).unwrap();
-                    if BstNode::is_node_match(&node, &y_parent) == false{
-                        // replace the right hand of y_parent with the right hand of y node
-                        y_parent.borrow_mut().transplant(Some(y.clone()), y.borrow().right.clone());
-                        y.borrow_mut().right = node.borrow().right.clone();
-                        y.borrow_mut().right.as_ref().unwrap().borrow_mut().parent = Some(BstNode::downgrade(&y));
+                    if node.borrow().key.unwrap() != self.left.clone().unwrap().borrow().key.unwrap() && node.borrow().key.unwrap() != self.right.clone().unwrap().borrow().key.unwrap(){
+                        // goes here if the target node is not direct child of root
+                        // find the minimum right subtree of target node
+                        let y = node.borrow().right.clone().unwrap().borrow().minimum();
+                        let y_parent = BstNode::upgrade_weak_to_strong(y.borrow().parent.clone()).unwrap();
+                        if BstNode::is_node_match(&node, &y_parent) == false{
+                            // replace the right hand of y_parent with the right hand of y node
+                            y_parent.borrow_mut().transplant(Some(y.clone()), y.borrow().right.clone());
+                            if y.borrow().right.is_some(){
+                                y.borrow_mut().right = node.borrow().right.clone();
+                                y.borrow_mut().right.as_ref().unwrap().borrow_mut().parent = Some(BstNode::downgrade(&y));
+                            }else{
+                                y.borrow_mut().right = None;
+                            }
+                        }
+                        // replace the target node with y node
+                        strong_parent.borrow_mut().transplant(Some(node.clone()), Some(y.clone()));
+                        y.borrow_mut().left = node.borrow().left.clone();
+                        y.borrow_mut().left.as_ref().unwrap().borrow_mut().parent = Some(BstNode::downgrade(&y));
+                    }else{
+                        // goes here if the target node is direct child of root
+                        // find the minimum right subtree of the target node
+                        let y = node.borrow().right.clone().unwrap().borrow().minimum();
+                        let y_parent = BstNode::upgrade_weak_to_strong(y.borrow().parent.clone()).unwrap();
+                        if BstNode::is_node_match(&node, &y_parent) == false{
+                            y_parent.borrow_mut().transplant(Some(y.clone()), y.borrow().right.clone());
+                            if y.borrow().right.is_some(){
+                                y.borrow_mut().right = node.borrow().right.clone();
+                                y.borrow_mut().right.as_ref().unwrap().borrow_mut().parent = Some(BstNode::downgrade(&y));
+                            }else{
+                                y.borrow_mut().right = None;
+                            }
+                        }
+                        y.borrow_mut().left = node.borrow().left.clone();
+                        y.borrow_mut().left.as_ref().unwrap().borrow_mut().parent = Some(BstNode::downgrade(&y));
+                        if y.borrow().key.unwrap() < self.key.unwrap(){
+                            self.left = Some(y.clone());
+                        }else{
+                            self.right = Some(y.clone());
+                        }
                     }
-                    // replace the target node with y node
-                    strong_parent.borrow_mut().transplant(Some(node.clone()), Some(y.clone()));
-                    y.borrow_mut().left = node.borrow().left.clone();
-                    y.borrow_mut().left.as_ref().unwrap().borrow_mut().parent = Some(BstNode::downgrade(&y));
                 }else{
+                    // goes here if the target node is root (doesn't have parent)
                     // find the minimum right subtree of target node
                     let y = node.borrow().right.clone().unwrap().borrow().minimum().clone();
                     let y_parent = BstNode::upgrade_weak_to_strong(y.borrow().parent.clone()).unwrap();
@@ -185,7 +194,25 @@ impl BstNode {
                     self.key = y.borrow().key;
                     self.right = Some(y_parent.clone());
                 }
-
+            }
+            // 4th scenario : the target node doesn't have either left child or right child
+            else if node.borrow().left.is_none() && node.borrow().right.is_none(){
+                // condition if the node has parent
+                if node.clone().borrow().parent.is_some(){
+                    let node_parent = node.borrow().parent.clone();
+                    let strong_parent = BstNode::upgrade_weak_to_strong(node_parent).unwrap();
+                    let parent_left = strong_parent.borrow().left.clone();
+                    let parent_right = strong_parent.borrow().right.clone();
+                    if value < strong_parent.borrow().key.unwrap(){
+                        strong_parent.borrow_mut().transplant(parent_left, None);
+                    }else{
+                        strong_parent.borrow_mut().transplant(parent_right, None);
+                    }
+                }
+                // if the node doesn't have parent
+                else{
+                    self.key = None;
+                }
             }
         }
     }
